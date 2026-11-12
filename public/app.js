@@ -1,4 +1,4 @@
-import { getSiteContent, isSupabaseConfigured } from "./supabase.js";
+import { getSiteContent, isSupabaseConfigured } from "./supabase.js?v=__BUILD_SHA__";
 
 /* A vitrine parte dos dados públicos e os atualiza pelo Supabase quando configurado. */
 let CONFIG = { whatsapp: "5512991239366" };
@@ -246,7 +246,7 @@ async function carregar(){
 /* Painel autenticado pelo Supabase: Ctrl+Alt+L ou segurar a logo por 2 segundos no celular. */
 function abrirPainel(){
   if(!catalogoPronto){ toast("Aguarde o carregamento dos imóveis antes de abrir o painel."); return; }
-  import("./admin.js").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast }));
+  import("./admin.js?v=__BUILD_SHA__").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast }));
 }
 document.addEventListener("keydown",e=>{
   if(e.code==="KeyL" && e.altKey && (e.ctrlKey||e.metaKey)){ e.preventDefault(); abrirPainel(); }

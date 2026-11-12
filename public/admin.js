@@ -1,6 +1,6 @@
 // Painel de edição autenticado; as permissões para gravar são aplicadas no Supabase com RLS.
 
-import { hasSession, isSupabaseConfigured, saveSiteContent, signIn, signOut, uploadSitePhoto } from "./supabase.js";
+import { hasSession, isSupabaseConfigured, saveSiteContent, signIn, signOut, uploadSitePhoto } from "./supabase.js?v=__BUILD_SHA__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let ctx, raiz, rascunho, alterado = false, editando = null;

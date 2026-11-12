@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Baixar o repositório
         uses: actions/checkout@v4
+      - name: Atualizar a versão dos scripts para evitar cache antigo
+        run: |
+          sed -i "s/__BUILD_SHA__/${GITHUB_SHA}/g" public/index.html public/app.js public/admin.js
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Preparar arquivos da vitrine
