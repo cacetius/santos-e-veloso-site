@@ -9,20 +9,13 @@ Por causa do servidor, o site **não pode mais ser publicado arrastando arquivos
 
 ---
 
-## 1. Subir o projeto no GitHub (uns 10 minutos)
+## 1. Demonstração pública pelo GitHub Pages
 
-1. Crie uma conta grátis em github.com, se ainda não tiver.
-2. Clique em **New repository**.
-   - Nome: `santos-e-veloso-site`
-   - Marque **Private**.
-   - Clique em **Create repository**.
-3. Na página do repositório, clique em **uploading an existing file**.
-4. Descompacte o zip que eu te mandei. Abra a pasta `santos-e-veloso-site` e arraste **tudo o que está dentro dela** para a página do GitHub:
-   - as pastas `public`, `netlify` e `tests`;
-   - os arquivos `netlify.toml`, `package.json` e este guia.
-5. Clique em **Commit changes**.
+O código deste projeto está no repositório público [santos-e-veloso-site](https://github.com/cacetius/santos-e-veloso-site). A vitrine estática é publicada automaticamente pelo GitHub Pages sempre que há um novo commit na branch `main`.
 
-> Confira no GitHub se o `netlify.toml` ficou na raiz, e não dentro de outra pasta. Se ficar dentro de outra pasta, o site não funciona.
+- **Demonstração:** https://cacetius.github.io/santos-e-veloso-site/
+- A demonstração serve a vitrine e os imóveis de exemplo. O painel de edição e o armazenamento de fotos não funcionam no GitHub Pages, pois dependem das funções e do Netlify Blobs.
+- Para editar e salvar imóveis no site de produção, use a implantação da Netlify descrita abaixo.
 
 ## 2. Ligar o GitHub à Netlify
 

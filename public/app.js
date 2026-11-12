@@ -224,7 +224,10 @@ async function carregar(){
 
 /* painel de edição: Ctrl+Alt+L (no Mac, Cmd+Option+L) ou segurar o logo por 2 segundos no celular.
    O atalho só abre a tela de senha; quem confere a senha é o servidor. */
-function abrirPainel(){ import("./admin.js").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast })); }
+function abrirPainel(){
+  if(location.hostname.endsWith(".github.io")){ toast("O painel de edição está disponível na versão Netlify."); return; }
+  import("./admin.js").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast }));
+}
 document.addEventListener("keydown",e=>{
   if(e.code==="KeyL" && e.altKey && (e.ctrlKey||e.metaKey)){ e.preventDefault(); abrirPainel(); }
 });
