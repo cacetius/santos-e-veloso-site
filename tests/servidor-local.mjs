@@ -31,4 +31,4 @@ export const servidor = createServer(async (rq, rs) => {
     rs.end(dados);
   } catch { rs.writeHead(404); rs.end("não encontrado"); }
 });
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) servidor.listen(8888, () => console.log("http://localhost:8888"));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) servidor.listen(8888, "127.0.0.1", () => console.log("http://localhost:8888"));
