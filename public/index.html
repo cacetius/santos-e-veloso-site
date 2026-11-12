@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Santos &amp; Veloso Consultoria Imobiliária</title>
+<meta name="description" content="Imóveis urbanos e rurais em Taubaté, Tremembé e região. Casas, apartamentos, lotes em condomínio e áreas rurais.">
+<meta property="og:title" content="Santos & Veloso Consultoria Imobiliária">
+<meta property="og:description" content="Imóveis urbanos e rurais em Taubaté, Tremembé e região.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Santos & Veloso">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="logo-mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav" id="nav"><div class="in"><a class="desktop-brand" href="/" aria-label="Santos &amp; Veloso — início"><img src="logo-santos-veloso.png" alt="Santos &amp; Veloso Consultoria"></a><span class="t" id="nav-t">Imóveis</span><div class="broker-picker"><button class="desktop-contact" id="broker-toggle" type="button" aria-expanded="false" aria-controls="broker-menu">Falar com os corretores</button><div class="broker-menu" id="broker-menu" hidden></div></div></div></header>
+
+<main>
+  <!-- IMÓVEIS -->
+  <section class="view in" id="v-imoveis" data-title="Imóveis">
+    <div class="brand">
+      <img class="brand-logo" src="logo-santos-veloso.png" alt="Santos &amp; Veloso Consultoria">
+      <div class="brand-copy">
+        <h1>Encontre seu próximo imóvel</h1>
+        <p>Casas, apartamentos, terrenos e imóveis rurais em Taubaté e região.</p>
+      </div>
+    </div>
+
+    <label class="search" for="q">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="q" placeholder="Bairro, cidade ou código" autocomplete="off" enterkeyhint="search">
+      <button type="button" class="clear" id="q-clear" aria-label="Limpar busca" hidden>×</button>
+    </label>
+    <div class="chips" id="chips" role="group" aria-label="Tipo de imóvel"></div>
+    <div class="menus">
+      <span class="menu"><span id="m-cid-t">Todas as cidades</span> <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <select id="m-cid" aria-label="Cidade"><option value="">Todas as cidades</option></select></span>
+      <span class="menu"><span id="m-max-t">Qualquer valor</span> <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <select id="m-max" aria-label="Valor máximo"><option value="">Qualquer valor</option><option value="150000">Até R$ 150 mil</option><option value="300000">Até R$ 300 mil</option><option value="500000">Até R$ 500 mil</option><option value="800000">Até R$ 800 mil</option></select></span>
+    </div>
+    <p class="count" id="count"></p>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- FINANCIAR -->
+  <section class="view in" id="v-financiar" data-title="Simulação" hidden>
+    <h1 class="large">Simulação de crédito</h1>
+    <p class="sub">Compare as opções e faça sua simulação diretamente nos canais oficiais.</p>
+    <div class="bank-links">
+      <a class="bank-link" href="https://simuladorhabitacao.caixa.gov.br/simulacao" target="_blank" rel="noopener">
+        <span class="bank-mark">C</span><span><b>CAIXA</b><small>Simulador de habitação</small></span><span class="bank-arrow">↗</span>
+      </a>
+      <a class="bank-link" href="https://www.poupex.com.br/credito-pessoal/credito-simples/#simulador-credito-simples" target="_blank" rel="noopener">
+        <span class="bank-mark">P</span><span><b>FHE POUPEX</b><small>Crédito Simples</small></span><span class="bank-arrow">↗</span>
+      </a>
+      <a class="bank-link" href="https://www.itau.com.br/emprestimos-financiamentos/credito-imobiliario" target="_blank" rel="noopener">
+        <span class="bank-mark">I</span><span><b>Itaú</b><small>Crédito imobiliário</small></span><span class="bank-arrow">↗</span>
+      </a>
+      <a class="bank-link" href="https://www.santander.com.br/credito-financiamento/para-voce/credito-imobiliario" target="_blank" rel="noopener">
+        <span class="bank-mark">S</span><span><b>Santander</b><small>Crédito imobiliário</small></span><span class="bank-arrow">↗</span>
+      </a>
+    </div>
+    <p class="foot">Cada instituição define suas taxas, condições e critérios de aprovação. A POUPEX oferece crédito pessoal, que pode ter regras diferentes do financiamento imobiliário.</p>
+  </section>
+
+  <!-- ANUNCIAR -->
+  <section class="view in" id="v-anunciar" data-title="Vender" hidden>
+    <h1 class="large">Vender imóvel</h1>
+    <p class="sub">Anuncie seu imóvel com a Santos &amp; Veloso. Envie os dados e um corretor entrará em contato.</p>
+    <form id="vform" novalidate>
+      <p class="cap">Imóvel</p>
+      <div class="group">
+        <label class="row" for="vtipo"><span class="k">Tipo</span><select id="vtipo"><option>Casa</option><option>Apartamento</option><option>Terreno / lote</option><option>Chácara / área rural</option><option>Ponto comercial</option></select></label>
+        <label class="row" for="vcid"><span class="k">Local</span><input id="vcid" placeholder="Cidade e bairro"></label>
+        <label class="row stack" for="vdesc"><span class="k">Descrição do imóvel</span><textarea id="vdesc" rows="3" placeholder="Ex.: casa térrea, 3 quartos, garagem para 2 carros"></textarea></label>
+      </div>
+      <p class="cap">Você</p>
+      <div class="group">
+        <label class="row" for="vnome"><span class="k">Nome</span><input id="vnome" autocomplete="name" placeholder="Seu nome"></label>
+      </div>
+      <p class="err" id="verr" hidden>Preencha o local e o seu nome para continuar.</p>
+      <div class="stackb"><button class="btn wa" type="submit">Anunciar para venda pelo WhatsApp</button></div>
+    </form>
+  </section>
+
+  <!-- CONTATO -->
+  <section class="view in" id="v-contato" data-title="Contato" hidden>
+    <h1 class="large">Contato</h1>
+    <p class="sub">Fale diretamente com um dos nossos corretores pelo WhatsApp.</p>
+    <div class="group" id="broker-contacts"></div>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="Seções"><div class="in" id="tabs">
+  <button class="tab" data-tab="imoveis"><svg width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg>Imóveis</button>
+  <button class="tab" data-tab="financiar"><svg width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7h7M8.5 11h1M12 11h0M15.5 11h0M8.5 14.5h1M12 14.5h0M15.5 14.5v3M8.5 17.5h1M12 17.5h0" stroke-linecap="round"/></svg>Simulação</button>
+  <button class="tab" data-tab="anunciar"><svg width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>Vender</button>
+  <button class="tab" data-tab="contato"><svg width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/></svg>Contato</button>
+</div></nav>
+
+<div class="sheet-wrap" id="sheet-wrap" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="d-tit">
+    <div class="grab" id="grab" aria-hidden="true"></div>
+    <button class="x" id="sheet-x" aria-label="Fechar">✕</button>
+    <div class="scroll" id="sheet-body"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

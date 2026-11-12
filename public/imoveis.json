@@ -1,0 +1,151 @@
+{
+  "config": {
+    "whatsapp": "5512991239366"
+  },
+  "imoveis": [
+    {
+      "cod": "SV-01",
+      "cat": "Apartamentos",
+      "ph": "urb",
+      "cidade": "Taubaté",
+      "bairro": "Independência",
+      "titulo": "Edifício Royalle Independência",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "94 m²",
+        "3 quartos",
+        "1 suíte",
+        "1 banheiro"
+      ],
+      "desc": "Apartamento em prédio novo no Independência, com sala e cozinha integradas à varanda gourmet.",
+      "feat": [
+        "Varanda gourmet",
+        "Sala e cozinha integradas",
+        "Suíte",
+        "Prédio novo"
+      ]
+    },
+    {
+      "cod": "SV-02",
+      "cat": "Terrenos",
+      "ph": "cond",
+      "cidade": "Tremembé",
+      "bairro": "Parque das Araucárias",
+      "titulo": "Lote no Condomínio Parque das Araucárias",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "300 m²",
+        "12 m de frente"
+      ],
+      "desc": "Lote em condomínio fechado, com divisa para a avenida principal do condomínio.",
+      "feat": [
+        "Condomínio fechado",
+        "Segurança 24h",
+        "12 m de frente",
+        "Pronto para construir"
+      ]
+    },
+    {
+      "cod": "SV-03",
+      "cat": "Terrenos",
+      "ph": "cond",
+      "cidade": "Tremembé",
+      "bairro": "Parque das Araucárias",
+      "titulo": "Lote de esquina no Parque das Araucárias",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "302,75 m²",
+        "Esquina"
+      ],
+      "desc": "Lote de esquina com excelente localização dentro do condomínio e vista para a praça.",
+      "feat": [
+        "Lote de esquina",
+        "Vista para a praça",
+        "Portaria 24h",
+        "Condomínio fechado"
+      ]
+    },
+    {
+      "cod": "SV-04",
+      "cat": "Rurais",
+      "ph": "rur",
+      "cidade": "Taubaté",
+      "bairro": "Samambaias",
+      "titulo": "Área no Bairro Samambaias",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "1.550 m²"
+      ],
+      "desc": "Área próxima à Rota da Luz, com cachoeiras e paisagens da serra por perto. Acesso pela Rodovia Oswaldo Cruz, a cerca de 25 km da Via Dutra.",
+      "feat": [
+        "Próximo à Rota da Luz",
+        "Cachoeiras na região",
+        "Acesso pela Oswaldo Cruz",
+        "Ideal para chácara"
+      ]
+    },
+    {
+      "cod": "SV-05",
+      "cat": "Comerciais",
+      "ph": "inv",
+      "cidade": "Taubaté",
+      "bairro": "Centro",
+      "titulo": "Casa + ponto comercial na Rua Juca Esteves",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "12 m de frente"
+      ],
+      "desc": "Moradia e comércio no mesmo imóvel, a menos de 400 m do Mercado Municipal.",
+      "feat": [
+        "Casa + ponto comercial",
+        "400 m do Mercado Municipal",
+        "Rua movimentada",
+        "Bom para renda"
+      ]
+    },
+    {
+      "cod": "SV-06",
+      "cat": "Casas",
+      "ph": "urb",
+      "cidade": "Taubaté",
+      "bairro": "",
+      "titulo": "Casa térrea com garagem",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "Térrea",
+        "Garagem coberta"
+      ],
+      "desc": "Casa térrea com garagem coberta e jardim na frente. Fotos e detalhes com o corretor.",
+      "feat": [
+        "Térrea",
+        "Garagem coberta",
+        "Jardim"
+      ]
+    },
+    {
+      "cod": "SV-07",
+      "cat": "Apartamentos",
+      "ph": "urb",
+      "cidade": "Taubaté",
+      "bairro": "",
+      "titulo": "Apartamento com vista",
+      "preco": null,
+      "fotos": [],
+      "specs": [
+        "Andar alto"
+      ],
+      "desc": "Vista aberta da cidade, perto de comércio e das avenidas principais.",
+      "feat": [
+        "Andar alto",
+        "Vista livre",
+        "Perto do comércio"
+      ]
+    }
+  ]
+}
