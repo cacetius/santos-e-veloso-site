@@ -1,24 +1,9 @@
-// Painel de edição. Carregado só quando alguém aperta Ctrl+Alt+L.
-// Este arquivo não guarda senha nem decide nada: todo pedido de alteração vai para o servidor,
-// que confere a sessão. Sem a senha, este painel não consegue salvar nada.
+// Painel de edição autenticado; as permissões para gravar são aplicadas no Supabase com RLS.
+
+import { hasSession, isSupabaseConfigured, saveSiteContent, signIn, signOut, uploadSitePhoto } from "./supabase.js";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const CHAVE = "sv-sessao";
 let ctx, raiz, rascunho, alterado = false, editando = null;
-
-function sessao() {
-  try { const s = JSON.parse(sessionStorage.getItem(CHAVE) || "null"); return s && s.expira > Date.now() ? s : null; } catch { return null; }
-}
-function salvarSessao(s) { try { s ? sessionStorage.setItem(CHAVE, JSON.stringify(s)) : sessionStorage.removeItem(CHAVE); } catch {} }
-
-async function api(url, opts = {}) {
-  const s = sessao();
-  const r = await fetch(url, { ...opts, headers: { ...(opts.headers || {}), ...(s ? { authorization: "Bearer " + s.token } : {}) } });
-  let corpo = {}; try { corpo = await r.json(); } catch {}
-  if (r.status === 401 && url !== "/api/login") { salvarSessao(null); telaLogin("Sua sessão expirou. Entre de novo."); throw new Error("sessao"); }
-  if (!r.ok) throw new Error(corpo.erro || "Não foi possível concluir. Verifique a internet e tente de novo.");
-  return corpo;
-}
 
 export function abrir(c) {
   ctx = c;
@@ -32,7 +17,7 @@ export function abrir(c) {
   }
   raiz.hidden = false; document.body.style.overflow = "hidden";
   requestAnimationFrame(() => requestAnimationFrame(() => raiz.classList.add("open")));
-  sessao() ? painel() : telaLogin();
+  hasSession() ? painel() : telaLogin();
 }
 function fechar() {
   if (alterado && !raiz.dataset.confirmar) {
@@ -55,27 +40,30 @@ function telaLogin(msg = "") {
     ${barra(`<button type="button" class="lnk" data-a="fechar">Cancelar</button>`, "Área do corretor", `<span></span>`)}
     <div class="in">
       <div class="brand"><div class="logo" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-        <h1>Editar imóveis</h1><p>Digite a senha do painel.</p></div>
+        <h1>Editar imóveis</h1><p>Entre com o e-mail e a senha autorizados.</p></div>
       <form id="f-login" novalidate>
-        <div class="group"><label class="row" for="adm-senha"><span class="k">Senha</span><input id="adm-senha" type="password" autocomplete="current-password" required></label></div>
+        <div class="group">
+          <label class="row" for="adm-email"><span class="k">E-mail</span><input id="adm-email" type="email" autocomplete="username" required></label>
+          <label class="row" for="adm-senha"><span class="k">Senha</span><input id="adm-senha" type="password" autocomplete="current-password" required></label>
+        </div>
         <p class="err" id="adm-err" ${msg ? "" : "hidden"}>${esc(msg)}</p>
         <div class="stackb"><button class="btn" type="submit">Entrar</button></div>
+        ${isSupabaseConfigured() ? "" : '<p class="foot">O painel precisa ser configurado com um projeto Supabase antes do primeiro acesso.</p>'}
       </form>
     </div>`;
   $a("[data-a=fechar]").onclick = fechar;
   const f = $a("#f-login");
   f.onsubmit = async e => {
     e.preventDefault();
-    const senha = $a("#adm-senha").value, err = $a("#adm-err"), b = f.querySelector("button");
-    if (!senha) { err.textContent = "Digite a senha."; err.hidden = false; return; }
+    const email = $a("#adm-email").value, senha = $a("#adm-senha").value, err = $a("#adm-err"), b = f.querySelector("button");
+    if (!email || !senha) { err.textContent = "Digite o e-mail e a senha."; err.hidden = false; return; }
     b.disabled = true; b.textContent = "Entrando…";
     try {
-      const r = await api("/api/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ senha }) });
-      salvarSessao({ token: r.token, expira: r.expira });
+      await signIn(email, senha);
       painel();
     } catch (x) { if (x.message !== "sessao") { err.textContent = x.message; err.hidden = false; } b.disabled = false; b.textContent = "Entrar"; }
   };
-  setTimeout(() => $a("#adm-senha")?.focus(), 300);
+  setTimeout(() => $a("#adm-email")?.focus(), 300);
 }
 
 /* ---------- lista ---------- */
@@ -106,7 +94,11 @@ function painel() {
     marcar(); editor(r.imoveis.length - 1);
   };
   raiz.querySelectorAll("[data-a=salvar]").forEach(b => b.onclick = salvar);
-  $a("[data-a=sair]").onclick = () => { salvarSessao(null); alterado = false; rascunho = null; fechar(); ctx.toast("Você saiu do painel"); };
+  $a("[data-a=sair]").onclick = async () => {
+    let aviso = "Você saiu do painel";
+    try { await signOut(); } catch (error) { aviso = error.message; }
+    alterado = false; rascunho = null; fechar(); ctx.toast(aviso);
+  };
 }
 function marcar() { alterado = true; const s = $a(".adm-status"); if (s) { s.textContent = "Alterações não salvas"; s.classList.add("pend"); } }
 
@@ -115,11 +107,15 @@ async function salvar() {
   const bs = raiz.querySelectorAll("[data-a=salvar]");
   bs.forEach(b => { b.disabled = true; });
   try {
-    const r = await api("/api/imoveis", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(rascunho) });
-    ctx.aplicarDados(r.dados); rascunho = ctx.dadosAtuais(); alterado = false;
+    const data = await saveSiteContent(rascunho);
+    ctx.aplicarDados(data); rascunho = ctx.dadosAtuais(); alterado = false;
     ctx.toast("Salvo. O site já está atualizado.");
     painel();
-  } catch (x) { if (x.message !== "sessao") ctx.toast(x.message); bs.forEach(b => { b.disabled = false; }); }
+  } catch (x) {
+    if (x.code === "SESSION_EXPIRED") telaLogin(x.message);
+    else ctx.toast(x.message);
+    bs.forEach(b => { b.disabled = false; });
+  }
 }
 
 /* ---------- editor de um imóvel ---------- */
@@ -203,7 +199,7 @@ async function reduzir(arquivo) {
   const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
   const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
   c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
-  return new Promise(res => c.toBlob(res, "image/jpeg", 0.82));
+  return new Promise((resolve, reject) => c.toBlob(blob => blob ? resolve(blob) : reject(new Error("Não foi possível reduzir esta foto.")), "image/jpeg", 0.82));
 }
 async function enviarFotos(arquivos) {
   const i = rascunho.imoveis[editando], lbl = $a("label[for=a-up]");
@@ -212,9 +208,12 @@ async function enviarFotos(arquivos) {
     lbl.textContent = `Enviando ${n + 1} de ${arquivos.length}…`;
     try {
       const blob = await reduzir(a);
-      const r = await api("/api/fotos", { method: "POST", headers: { "content-type": "image/jpeg" }, body: blob });
-      i.fotos.push(r.url); marcar(); fotos();
-    } catch (x) { if (x.message === "sessao") return; ctx.toast(`${a.name}: ${x.message}`); }
+      const url = await uploadSitePhoto(blob);
+      i.fotos.push(url); marcar(); fotos();
+    } catch (x) {
+      if (x.code === "SESSION_EXPIRED") { telaLogin(x.message); return; }
+      ctx.toast(`${a.name}: ${x.message}`);
+    }
   }
   lbl.textContent = "Adicionar fotos"; $a("#a-up").value = "";
 }

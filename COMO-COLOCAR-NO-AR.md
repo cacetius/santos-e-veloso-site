@@ -1,88 +1,52 @@
-# Santos & Veloso: como colocar o site no ar
+# Santos & Veloso: publicar e administrar o site
 
-O site tem duas partes:
+O site público pode ficar no GitHub Pages. O painel usa Supabase para autenticação, banco de dados e fotos; não depende da Netlify.
 
-- **Vitrine** (pasta `public/`): o que os clientes veem.
-- **Servidor** (pasta `netlify/`): confere a senha do painel e guarda os imóveis e as fotos.
+- **Demonstração pública:** https://cacetius.github.io/santos-e-veloso-site/
+- **Código:** https://github.com/cacetius/santos-e-veloso-site
+- A vitrine lê o catálogo do Supabase. Se o projeto ainda não estiver configurado, mostra os dados de demonstração de `public/imoveis.json`.
 
-Por causa do servidor, o site **não pode mais ser publicado arrastando arquivos** na Netlify Drop. Ele precisa ir pelo GitHub. Você faz isso uma vez; depois, editar imóveis é só pelo painel.
+## 1. Criar e configurar o Supabase
 
----
+1. Crie um projeto em [supabase.com](https://supabase.com/). Guarde a senha do banco no seu gerenciador de senhas; ela não é a senha do painel.
+2. No projeto, abra **SQL Editor**, copie todo o conteúdo de [`supabase/setup.sql`](./supabase/setup.sql) e execute.
+3. Em **Authentication → Users**, crie um usuário para cada pessoa autorizada a editar. Use e-mails individuais, senhas longas e únicas. Não habilite cadastro público de usuários.
+4. Copie o UUID do usuário autorizado. No SQL Editor, execute a consulta abaixo substituindo o UUID pelo valor mostrado no Supabase:
 
-## 1. Demonstração pública pelo GitHub Pages
+   ```sql
+   insert into public.site_admins (user_id)
+   values ('UUID-DO-USUARIO-AUTORIZADO');
+   ```
 
-O código deste projeto está no repositório público [santos-e-veloso-site](https://github.com/cacetius/santos-e-veloso-site). A vitrine estática é publicada automaticamente pelo GitHub Pages sempre que há um novo commit na branch `main`.
+   Só usuários listados em `site_admins` podem alterar imóveis ou enviar fotos. A chave pública do site não concede essa permissão.
 
-- **Demonstração:** https://cacetius.github.io/santos-e-veloso-site/
-- A demonstração serve a vitrine e os imóveis de exemplo. O painel de edição e o armazenamento de fotos não funcionam no GitHub Pages, pois dependem das funções e do Netlify Blobs.
-- Para editar e salvar imóveis no site de produção, use a implantação da Netlify descrita abaixo.
+5. Em **Project Settings → API Keys**, copie a URL do projeto e a chave **publishable** (ou a chave pública `anon`, se a interface ainda mostrar esse nome).
+6. No arquivo [`public/supabase-config.js`](./public/supabase-config.js), preencha `url` e `anonKey` com esses dois valores públicos.
+7. Faça commit e push na branch `main`. O GitHub Actions atualizará o GitHub Pages automaticamente. A primeira publicação pode levar alguns minutos.
+8. Abra a demonstração, pressione **Ctrl + Alt + L** (ou **Cmd + Option + L** no Mac) e entre com o e-mail e a senha do usuário autorizado.
 
-## 2. Ligar o GitHub à Netlify
+**Nunca coloque a chave `service_role` ou outra chave secreta em `public/`, no GitHub, neste guia ou no chat.** A configuração do navegador só deve conter a URL e a chave pública `publishable`/`anon`; a segurança de gravação é feita pelas políticas RLS aplicadas pelo SQL.
 
-1. Entre em app.netlify.com com a sua conta.
-2. Abra o site que você já tem (o `keen-trifle-817f35` ou o nome que você deu).
-3. Vá em **Site configuration → Build & deploy → Link repository**, escolha **GitHub** e depois o repositório `santos-e-veloso-site`.
-4. A Netlify lê as configurações do `netlify.toml` sozinha. Se ela perguntar:
-   - Publish directory: `public`
-   - Functions directory: `netlify/functions`
-   - Build command: deixe vazio
-5. Clique em **Deploy**.
+## 2. Como editar
 
-Se não aparecer a opção de ligar o repositório nesse site, use **Add new site → Import an existing project → GitHub**. Depois troque o nome em **Site configuration → Change site name**.
+- **Abrir o painel:** no computador, pressione **Ctrl + Alt + L**. No celular, segure a logo por 2 segundos.
+- **Editar imóvel:** selecione-o, altere os campos e salve.
+- **Adicionar:** use **＋ Adicionar imóvel**, preencha os dados e envie as fotos. A primeira foto vira a capa.
+- **Preço vazio:** aparece “Consulte o valor”.
+- **Excluir:** abra o imóvel e confirme duas vezes; salve para publicar a alteração.
+- **Sair:** use **Sair**. A sessão fica no armazenamento da aba do navegador e expira conforme a configuração de autenticação do Supabase.
 
-## 3. Criar a senha do painel (o passo mais importante)
+## 3. Cuidados de segurança
 
-Em **Site configuration → Environment variables → Add a variable**, crie estas duas:
+- Mantenha o cadastro público de usuários desativado e conceda acesso somente aos e-mails necessários.
+- Ative MFA na conta Supabase e GitHub.
+- A tabela e o bucket são públicos para leitura porque a vitrine precisa mostrar imóveis e fotos. A gravação é restrita por RLS aos usuários cadastrados em `site_admins`.
+- Não coloque endereço residencial, documentos, dados de proprietários ou informações que não devam ser públicas nos anúncios.
+- Para remover um administrador, apague seu registro de `public.site_admins`; para bloquear o login, desative também a conta em **Authentication → Users**.
+- A demonstração GitHub Pages é pública e serve só os arquivos estáticos; o Supabase atende a leitura, autenticação e gravação.
 
-| Nome | Valor |
-| --- | --- |
-| `ADMIN_SENHA` | A senha que você vai digitar no painel. Mínimo de 10 caracteres; use 14 ou mais, misturando palavras e números. |
-| `SESSAO_SEGREDO` | Uma sequência aleatória de **40 ou mais caracteres**. Ninguém precisa decorar. Use o gerador de senhas do iPhone ou do Google e cole aqui. |
+## 4. Testes e implementação
 
-Depois vá em **Deploys → Trigger deploy → Deploy site**. As variáveis só valem depois desse novo deploy.
-
-> Sem essas duas variáveis, o painel não abre para ninguém, nem para você. Isso é proposital: o site nunca roda com senha vazia ou fraca.
-
-## 4. Testar
-
-1. Abra o site no computador e aperte **Ctrl + Alt + L** (no Mac, **Cmd + Option + L**).
-2. Digite a senha e confira se a lista de imóveis aparece.
-3. Toque em **Salvar** e depois atualize a página: a alteração aparece para todo mundo.
-4. No celular, **segure o dedo no logo do topo por 2 segundos** para abrir o painel.
-
-## 5. Usar no dia a dia
-
-- **Abrir o painel:** no computador, entre em **Contato** e aperte **Ctrl + Alt + L**. Digite a senha. No Mac, use **Cmd + Option + L**. No celular, segure o logo por 2 segundos.
-- **Mudar um dado:** toque no imóvel, edite e toque em **Salvar**. As alterações só valem depois de salvar.
-- **Adicionar imóvel:** no painel, toque em "＋ Adicionar imóvel", preencha os campos e coloque as fotos. Depois toque em **Salvar**. A primeira foto vira a capa.
-- **Fotos:** podem ser tiradas direto do celular. O site reduz cada foto para no máximo 1600 px antes de enviar. A primeira foto vira a capa; a estrela troca a capa.
-- **Preço:** deixe vazio para aparecer "Consulte o valor".
-- **Vendeu?** Abra o imóvel e toque em **Excluir imóvel** duas vezes. Depois toque em **Salvar**.
-- **Corretores:** use **Falar com os corretores** no topo do site para escolher Leandro ou Juan e abrir o WhatsApp. Os números são configurados no código do site.
-- **Anunciar para venda:** preencha o formulário da aba **Vender**; a mensagem com os dados do imóvel será preparada no WhatsApp do Leandro.
-- **Simulação:** a aba abre os simuladores e páginas oficiais da CAIXA, POUPEX, Itaú e Santander. As condições são definidas por cada instituição.
-- **Desfazer:** a cada salvamento, o servidor guarda a versão anterior. Se alguém apagar algo por engano, dá para recuperar.
-- **Sair:** use "Sair" no painel quando usar um computador que não é seu. O login também expira sozinho em 8 horas.
-
-## 6. Domínio próprio (opcional)
-
-1. Registre `santoseveloso.com.br` em registro.br, no CPF ou CNPJ do cliente (cerca de R$ 40 por ano).
-2. Na Netlify, vá em **Domain management → Add a domain** e siga as instruções de DNS.
-3. O certificado de segurança (o cadeado) é instalado automaticamente.
-
-## Segurança: o que protege o painel
-
-- **O atalho não é a proteção, a senha é.** Qualquer pessoa que descobrir o Ctrl+Alt+L só vê uma tela pedindo senha. Quem confere a senha é o servidor, nunca o navegador.
-- **Limite de tentativas:** depois de 5 senhas erradas, aquele aparelho fica bloqueado por 15 minutos.
-- **Login com prazo:** o acesso é uma "chave" assinada pelo servidor que vence em 8 horas. Para derrubar todos os logins na hora, troque o `SESSAO_SEGREDO` e faça um novo deploy.
-- **Trocar a senha:** altere o `ADMIN_SENHA` e faça um novo deploy.
-- Para trocar a senha: na Netlify, abra **Site configuration → Environment variables**, edite `ADMIN_SENHA` e depois faça **Deploys → Trigger deploy → Deploy site**. A senha não é alterada dentro do painel de imóveis.
-- **Dados conferidos:** o servidor recusa códigos repetidos, preços inválidos, fotos de outros sites e qualquer texto com `<` ou `>`. Com isso, ninguém consegue injetar código pelo painel.
-- **Fotos conferidas:** só aceita JPG, PNG ou WEBP de verdade (o servidor confere o conteúdo, não só o nome), com até 4 MB.
-- **Cabeçalhos de segurança** no `netlify.toml`: bloqueiam scripts de outros sites, impedem que o site seja aberto dentro de outro site e forçam HTTPS.
-
-## Para quem programa
-
-- `npm install` e depois `npm test` rodam os 12 testes de segurança da API.
-- `ADMIN_SENHA=senha-local-123 SESSAO_SEGREDO=$(openssl rand -hex 24) node tests/servidor-local.mjs` abre o site em http://localhost:8888, com o painel funcionando e os dados guardados em memória.
-- O código do servidor fica em `netlify/lib/api.mjs`. As funções em `netlify/functions/` só ligam esse código ao Netlify Blobs.
+- `npm test` roda os testes de segurança da API Netlify antiga, mantida no repositório, mas não utilizada pelo painel atual.
+- O painel atual usa [`public/supabase.js`](./public/supabase.js) e as permissões definidas em [`supabase/setup.sql`](./supabase/setup.sql).
+- A configuração pública do navegador fica em `public/supabase-config.js`; não use ali uma chave secreta.

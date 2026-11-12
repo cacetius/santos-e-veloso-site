@@ -1,11 +1,13 @@
-/* Os imóveis vêm do servidor (/api/imoveis), editados pelo painel (Ctrl+Alt+L).
-   Se o servidor ainda não tiver dados, usa public/imoveis.json. */
+import { getSiteContent, isSupabaseConfigured } from "./supabase.js";
+
+/* A vitrine parte dos dados públicos e os atualiza pelo Supabase quando configurado. */
 let CONFIG = { whatsapp: "5512991239366" };
 const CORRETORES = {
   juan: { nome: "Juan Veloso", numero: "5512991239366", exibicao: "(12) 99123-9366" },
   leandro: { nome: "Leandro", numero: "5512974022184", exibicao: "(12) 97402-2184" }
 };
 let IMOVEIS = [];
+let catalogoPronto = false;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -216,16 +218,34 @@ document.addEventListener("keydown",e=>{
 
 async function carregar(){
   $("count").textContent = "Carregando imóveis…";
-  for (const url of ["/api/imoveis", "imoveis.json"]) {
-    try { const r = await fetch(url, { cache: "no-cache" }); if (r.ok) { aplicarDados(await r.json()); route(); return; } } catch (e) {}
+  try {
+    const response = await fetch("imoveis.json", { cache: "no-cache" });
+    if (!response.ok) throw new Error(`Falha ao carregar os imóveis de demonstração (${response.status}).`);
+    aplicarDados(await response.json());
+    route();
+  } catch (error) {
+    console.error("Não foi possível carregar os imóveis:", error);
+    $("count").textContent = "Não foi possível carregar os imóveis. Atualize a página.";
+    return;
   }
-  $("count").textContent = "Não foi possível carregar os imóveis. Atualize a página.";
+  if (!isSupabaseConfigured()) { catalogoPronto = true; return; }
+  try {
+    const data = await getSiteContent();
+    if (data && Array.isArray(data.imoveis)) {
+      aplicarDados(data);
+      route();
+    }
+  } catch (error) {
+    console.error("Não foi possível atualizar o catálogo pelo Supabase:", error);
+    toast("Não foi possível atualizar o catálogo. Exibindo os dados de demonstração.");
+  } finally {
+    catalogoPronto = true;
+  }
 }
 
-/* painel de edição: Ctrl+Alt+L (no Mac, Cmd+Option+L) ou segurar o logo por 2 segundos no celular.
-   O atalho só abre a tela de senha; quem confere a senha é o servidor. */
+/* Painel autenticado pelo Supabase: Ctrl+Alt+L ou segurar a logo por 2 segundos no celular. */
 function abrirPainel(){
-  if(location.hostname.endsWith(".github.io")){ toast("O painel de edição está disponível na versão Netlify."); return; }
+  if(!catalogoPronto){ toast("Aguarde o carregamento dos imóveis antes de abrir o painel."); return; }
   import("./admin.js").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast }));
 }
 document.addEventListener("keydown",e=>{
