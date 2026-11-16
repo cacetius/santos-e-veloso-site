@@ -286,10 +286,25 @@ function fotos() {
   box.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { const [f] = i.fotos.splice(Number(b.dataset.p), 1); i.fotos.unshift(f); marcar(); fotos(); });
 }
 async function reduzir(arquivo) {
-  const bmp = await createImageBitmap(arquivo);
-  const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  const url = URL.createObjectURL(arquivo);
+  const imagem = new Image();
+  try {
+    await new Promise((resolve, reject) => {
+      imagem.onload = resolve;
+      imagem.onerror = () => reject(new Error("Não foi possível abrir esta foto. Tente enviá-la como JPG ou PNG."));
+      imagem.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+  if (!imagem.naturalWidth || !imagem.naturalHeight) throw new Error("Não foi possível ler as dimensões desta foto.");
+  const k = Math.min(1, 1600 / Math.max(imagem.naturalWidth, imagem.naturalHeight));
+  const c = document.createElement("canvas"); c.width = Math.round(imagem.naturalWidth * k); c.height = Math.round(imagem.naturalHeight * k);
+  const context = c.getContext("2d");
+  if (!context) throw new Error("Não foi possível preparar esta foto neste navegador.");
+  context.fillStyle = "#fff";
+  context.fillRect(0, 0, c.width, c.height);
+  context.drawImage(imagem, 0, 0, c.width, c.height);
   return new Promise((resolve, reject) => c.toBlob(blob => blob ? resolve(blob) : reject(new Error("Não foi possível reduzir esta foto.")), "image/jpeg", 0.82));
 }
 async function enviarFotos(arquivos) {
