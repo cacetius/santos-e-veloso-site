@@ -163,3 +163,8 @@ test("database policies require administrator membership for every write", () =>
   assert.match(sql, /create policy "Admins can upload property photos"[\s\S]*?for insert[\s\S]*?public\.site_admins/i);
   assert.doesNotMatch(sql, /create policy[^;]*on public\.site_content for insert/i);
 });
+
+test("Netlify CSP allows property photos from the Supabase project", () => {
+  const config = readFileSync(new URL("../netlify.toml", import.meta.url), "utf8");
+  assert.match(config, /img-src[^;]*https:\/\/epznlumrnsuqkavtsraa\.supabase\.co/i);
+});
