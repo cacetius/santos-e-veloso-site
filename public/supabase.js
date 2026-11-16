@@ -84,6 +84,25 @@ export async function signIn(email, password) {
   writeSession({ ...body, expires_at: body.expires_at || Math.floor(Date.now() / 1000) + body.expires_in });
 }
 
+export async function updatePassword(accessToken, password) {
+  if (!isSupabaseConfigured()) throw new Error("Painel ainda não configurado. Configure o projeto Supabase antes de entrar.");
+  if (!accessToken) throw new Error("O link de redefinição é inválido ou expirou. Solicite outro e-mail.");
+  const response = await fetch(`${BASE_URL}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: CONFIG.anonKey,
+      authorization: `Bearer ${accessToken}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ password })
+  });
+  const body = await responseBody(response);
+  if (!response.ok) {
+    if (response.status === 401) throw new Error("O link de redefinição expirou ou já foi usado. Solicite outro e-mail.");
+    throw errorFrom(body, `Não foi possível atualizar a senha (${response.status}).`);
+  }
+}
+
 export async function signOut() {
   const session = readSession();
   writeSession(null);

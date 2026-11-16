@@ -1,11 +1,11 @@
 // Painel de edição autenticado; as permissões para gravar são aplicadas no Supabase com RLS.
 
-import { hasSession, isSupabaseConfigured, saveSiteContent, signIn, signOut, uploadSitePhoto } from "./supabase.js?v=__BUILD_SHA__";
+import { hasSession, isSupabaseConfigured, saveSiteContent, signIn, signOut, updatePassword, uploadSitePhoto } from "./supabase.js?v=__BUILD_SHA__";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let ctx, raiz, rascunho, alterado = false, editando = null;
 
-export function abrir(c) {
+export function abrir(c, recoveryToken = "") {
   ctx = c;
   if (!raiz) {
     raiz = document.createElement("div");
@@ -17,7 +17,8 @@ export function abrir(c) {
   }
   raiz.hidden = false; document.body.style.overflow = "hidden";
   requestAnimationFrame(() => requestAnimationFrame(() => raiz.classList.add("open")));
-  hasSession() ? painel() : telaLogin();
+  if (recoveryToken) telaRecuperacao(recoveryToken);
+  else hasSession() ? painel() : telaLogin();
 }
 function fechar() {
   if (alterado && !raiz.dataset.confirmar) {
@@ -35,7 +36,7 @@ const $a = sel => raiz.querySelector(sel);
 const barra = (esq, titulo, dir) => `<div class="adm-bar">${esq}<b>${esc(titulo)}</b>${dir}</div>`;
 
 /* ---------- login ---------- */
-function telaLogin(msg = "") {
+function telaLogin(msg = "", sucesso = false) {
   $a("#adm").innerHTML = `
     ${barra(`<button type="button" class="lnk" data-a="fechar">Cancelar</button>`, "Área do corretor", `<span></span>`)}
     <div class="in">
@@ -46,7 +47,8 @@ function telaLogin(msg = "") {
           <label class="row" for="adm-email"><span class="k">E-mail</span><input id="adm-email" type="email" autocomplete="username" required></label>
           <label class="row" for="adm-senha"><span class="k">Senha</span><input id="adm-senha" type="password" autocomplete="current-password" required></label>
         </div>
-        <p class="err" id="adm-err" ${msg ? "" : "hidden"}>${esc(msg)}</p>
+        ${sucesso ? `<p class="foot">${esc(msg)}</p>` : ""}
+        <p class="err" id="adm-err" ${msg && !sucesso ? "" : "hidden"}>${sucesso ? "" : esc(msg)}</p>
         <div class="stackb"><button class="btn" type="submit">Entrar</button></div>
         ${isSupabaseConfigured() ? "" : '<p class="foot">O painel precisa ser configurado com um projeto Supabase antes do primeiro acesso.</p>'}
       </form>
@@ -64,6 +66,41 @@ function telaLogin(msg = "") {
     } catch (x) { if (x.message !== "sessao") { err.textContent = x.message; err.hidden = false; } b.disabled = false; b.textContent = "Entrar"; }
   };
   setTimeout(() => $a("#adm-email")?.focus(), 300);
+}
+
+function telaRecuperacao(token) {
+  $a("#adm").innerHTML = `
+    ${barra(`<button type="button" class="lnk" data-a="fechar">Cancelar</button>`, "Nova senha", `<span></span>`)}
+    <div class="in">
+      <div class="brand"><h1>Redefinir senha</h1><p>Escolha uma nova senha para acessar o painel.</p></div>
+      <form id="f-recovery" novalidate>
+        <div class="group">
+          <label class="row" for="adm-nova-senha"><span class="k">Nova senha</span><input id="adm-nova-senha" type="password" autocomplete="new-password" minlength="8" required></label>
+          <label class="row" for="adm-confirma-senha"><span class="k">Confirmar senha</span><input id="adm-confirma-senha" type="password" autocomplete="new-password" minlength="8" required></label>
+        </div>
+        <p class="err" id="adm-err" hidden></p>
+        <div class="stackb"><button class="btn" type="submit">Salvar nova senha</button></div>
+      </form>
+    </div>`;
+  $a("[data-a=fechar]").onclick = fechar;
+  const form = $a("#f-recovery");
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const password = $a("#adm-nova-senha").value, confirmation = $a("#adm-confirma-senha").value;
+    const err = $a("#adm-err"), button = form.querySelector("button");
+    if (password.length < 8) { err.textContent = "A senha deve ter pelo menos 8 caracteres."; err.hidden = false; return; }
+    if (password !== confirmation) { err.textContent = "As senhas não coincidem."; err.hidden = false; return; }
+    button.disabled = true; button.textContent = "Salvando…";
+    try {
+      await updatePassword(token, password);
+      telaLogin("Senha atualizada. Entre com sua nova senha.", true);
+      token = "";
+    } catch (error) {
+      err.textContent = error.message;
+      err.hidden = false;
+      button.disabled = false; button.textContent = "Salvar nova senha";
+    }
+  };
 }
 
 /* ---------- lista ---------- */

@@ -22,6 +22,7 @@ const {
   saveSiteContent,
   signIn,
   signOut,
+  updatePassword,
   uploadSitePhoto
 } = await import("../public/supabase.js");
 const originalFetch = globalThis.fetch;
@@ -134,6 +135,23 @@ test("logout revokes and clears the local session", async () => {
   } finally {
     globalThis.fetch = originalFetch;
     clear();
+  }
+});
+
+test("password recovery updates the password using the recovery token", async () => {
+  clear();
+  globalThis.fetch = async (url, options) => {
+    assert.equal(String(url), "https://demo-project.supabase.co/auth/v1/user");
+    assert.equal(options.method, "PUT");
+    assert.equal(options.headers.apikey, "sb_publishable_test_key");
+    assert.equal(options.headers.authorization, "Bearer recovery-access-token");
+    assert.deepEqual(JSON.parse(options.body), { password: "a-new-strong-password" });
+    return response({ id: "admin-user" });
+  };
+  try {
+    await updatePassword("recovery-access-token", "a-new-strong-password");
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 

@@ -248,6 +248,9 @@ function abrirPainel(){
   if(!catalogoPronto){ toast("Aguarde o carregamento dos imóveis antes de abrir o painel."); return; }
   import("./admin.js?v=__BUILD_SHA__").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast }));
 }
+function abrirRedefinicaoSenha(token) {
+  import("./admin.js?v=__BUILD_SHA__").then(m=>m.abrir({ dadosAtuais, aplicarDados, toast }, token));
+}
 document.addEventListener("keydown",e=>{
   if(e.code==="KeyL" && e.altKey && (e.ctrlKey||e.metaKey)){ e.preventDefault(); abrirPainel(); }
 });
@@ -259,4 +262,13 @@ document.addEventListener("keydown",e=>{
   logo.addEventListener("contextmenu",e=>e.preventDefault());
 })();
 
-carregar();
+const parametrosAuth = new URLSearchParams(location.hash.slice(1));
+const tokenRecuperacao = parametrosAuth.get("type") === "recovery" ? parametrosAuth.get("access_token") : "";
+const erroRecuperacao = parametrosAuth.get("type") === "recovery"
+  ? parametrosAuth.get("error_description") || parametrosAuth.get("error")
+  : "";
+if (tokenRecuperacao || erroRecuperacao) history.replaceState(null, "", location.pathname + location.search);
+carregar().then(() => {
+  if (tokenRecuperacao) abrirRedefinicaoSenha(tokenRecuperacao);
+  else if (erroRecuperacao) toast("O link de redefinição expirou ou é inválido. Solicite outro e-mail.");
+});
