@@ -169,7 +169,6 @@ function editor(k) {
       <p class="foot">A primeira foto aparece na vitrine. Fotos grandes são reduzidas automaticamente.</p>
       <p class="cap">Principal</p>
       <div class="group">
-        <label class="row" for="e-cod"><span class="k">Código</span><input id="e-cod" value="${esc(i.cod)}"></label>
         <label class="row" for="e-tit"><span class="k">Título</span><input id="e-tit" value="${esc(i.titulo)}" placeholder="Ex.: Casa térrea no Independência"></label>
         <label class="row" for="e-cat"><span class="k">Tipo</span><input id="e-cat" list="e-cats" value="${esc(i.cat)}"></label>
         <datalist id="e-cats">${cats.map(c => `<option value="${esc(c)}">`).join("")}</datalist>
@@ -179,7 +178,14 @@ function editor(k) {
       <div class="group">
         <label class="row" for="e-cid"><span class="k">Cidade</span><input id="e-cid" value="${esc(i.cidade)}"></label>
         <label class="row" for="e-bai"><span class="k">Bairro</span><input id="e-bai" value="${esc(i.bairro)}"></label>
+        <label class="row" for="e-endereco"><span class="k">Endereço completo</span><input id="e-endereco" value="${esc(i.endereco || "")}" placeholder="Rua, número e complemento"></label>
       </div>
+      <p class="foot">O endereço será mostrado publicamente na ficha do imóvel. Inclua somente informações autorizadas para divulgação.</p>
+      <div class="stackb"><button class="btn gray" type="button" data-a="localizar">Localizar endereço no mapa</button></div>
+      <p class="foot" id="e-map-status" aria-live="polite"></p>
+      <iframe id="e-map" title="Prévia do mapa do imóvel" loading="lazy"
+        ${i.lat != null && i.lon != null && Number.isFinite(Number(i.lat)) && Number.isFinite(Number(i.lon)) ? `src="${mapaEmbedUrl(i.lat, i.lon)}"` : "hidden"}
+        style="width:100%;height:220px;border:0;border-radius:12px"></iframe>
       <p class="cap">Detalhes</p>
       <div class="group">
         <label class="row stack" for="e-specs"><span class="k">Medidas e números</span><input id="e-specs" style="text-align:left" value="${esc(i.specs.join(", "))}" placeholder="94 m², 3 quartos, 1 suíte"></label>
@@ -197,6 +203,16 @@ function editor(k) {
     </div>`;
   fotos();
   raiz.querySelectorAll("#adm input:not([type=file]), #adm textarea, #adm select").forEach(el => el.addEventListener("input", marcar));
+  ["#e-endereco", "#e-bai", "#e-cid"].forEach(selector => $a(selector).addEventListener("input", () => {
+    const consulta = [$a("#e-endereco").value.trim(), $a("#e-bai").value.trim(), $a("#e-cid").value.trim(), "Brasil"].filter(Boolean).join(", ");
+    const imovel = rascunho.imoveis[editando];
+    if (imovel.localizacaoConsulta && imovel.localizacaoConsulta !== consulta) {
+      delete imovel.lat; delete imovel.lon; delete imovel.localizacaoConsulta;
+      $a("#e-map").hidden = true; $a("#e-map").removeAttribute("src");
+      $a("#e-map-status").textContent = "Endereço alterado. Localize novamente para atualizar o mapa.";
+    }
+  }));
+  $a("[data-a=localizar]").onclick = localizarEndereco;
   $a("[data-a=voltar]").onclick = () => { if (lerEditor()) painel(); };
   raiz.querySelectorAll("[data-a=salvar]").forEach(b => b.onclick = salvar);
   $a("[data-a=excluir]").onclick = e => {
@@ -206,11 +222,49 @@ function editor(k) {
   };
   $a("#a-up").onchange = e => enviarFotos([...e.target.files]);
 }
+function mapaEmbedUrl(lat, lon) {
+  const latitude = Number(lat), longitude = Number(lon), offset = 0.006;
+  const bbox = [longitude - offset, latitude - offset, longitude + offset, latitude + offset].join(",");
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+}
+async function localizarEndereco() {
+  const endereco = [$a("#e-endereco").value.trim(), $a("#e-bai").value.trim(), $a("#e-cid").value.trim(), "Brasil"].filter(Boolean).join(", ");
+  const botao = $a("[data-a=localizar]"), status = $a("#e-map-status"), mapa = $a("#e-map");
+  if (!$a("#e-endereco").value.trim() || !$a("#e-cid").value.trim()) {
+    status.textContent = "Informe o endereço e a cidade antes de localizar.";
+    return;
+  }
+  botao.disabled = true; botao.textContent = "Localizando…"; status.textContent = "";
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(endereco)}`;
+    const response = await fetch(url, { headers: { accept: "application/json" } });
+    if (!response.ok) throw new Error(`O serviço de mapas respondeu com erro (${response.status}).`);
+    const resultados = await response.json();
+    if (!Array.isArray(resultados) || !resultados.length) throw new Error("Endereço não encontrado. Confira o endereço e tente novamente.");
+    const lat = Number(resultados[0].lat), lon = Number(resultados[0].lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+      throw new Error("O serviço de mapas retornou uma localização inválida.");
+    }
+    Object.assign(rascunho.imoveis[editando], { lat, lon, localizacaoConsulta: endereco });
+    mapa.src = mapaEmbedUrl(lat, lon); mapa.hidden = false;
+    status.textContent = "Localização encontrada. Salve o imóvel para publicar.";
+    marcar();
+  } catch (error) {
+    status.textContent = error.message || "Não foi possível localizar esse endereço.";
+  } finally {
+    botao.disabled = true; botao.textContent = "Localizar endereço no mapa";
+    setTimeout(() => { if (botao.isConnected) botao.disabled = false; }, 1100);
+  }
+}
 function lerEditor() {
   const i = rascunho.imoveis[editando], v = id => $a("#" + id).value.trim();
+  const consultaLocalizacao = [v("e-endereco"), v("e-bai"), v("e-cid"), "Brasil"].filter(Boolean).join(", ");
+  if (i.localizacaoConsulta && i.localizacaoConsulta !== consultaLocalizacao) {
+    delete i.lat; delete i.lon; delete i.localizacaoConsulta;
+  }
   const preco = v("e-preco").replace(/\D/g, "");
   Object.assign(i, {
-    cod: v("e-cod").toUpperCase(), titulo: v("e-tit"), cat: v("e-cat"), cidade: v("e-cid"), bairro: v("e-bai"),
+    titulo: v("e-tit"), cat: v("e-cat"), cidade: v("e-cid"), bairro: v("e-bai"), endereco: v("e-endereco"),
     preco: preco ? Number(preco) : null, ph: v("e-ph"), desc: v("e-desc"),
     specs: v("e-specs").split(",").map(s => s.trim()).filter(Boolean),
     feat: v("e-feat").split("\n").map(s => s.trim()).filter(Boolean)

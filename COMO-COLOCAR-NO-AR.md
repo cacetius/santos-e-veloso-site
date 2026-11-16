@@ -32,6 +32,7 @@ O site público pode ficar no GitHub Pages. O painel usa Supabase para autentica
 - **Abrir o painel:** no computador, pressione **Ctrl + Alt + L**. No celular, segure a logo por 2 segundos.
 - **Editar imóvel:** selecione-o, altere os campos e salve.
 - **Adicionar:** use **＋ Adicionar imóvel**, preencha os dados e envie as fotos. A primeira foto vira a capa.
+- **Endereço e mapa:** informe o endereço completo e use **Localizar endereço no mapa**. A busca depende do OpenStreetMap; confira o marcador antes de salvar. O endereço preenchido aparece publicamente na ficha do imóvel, então divulgue-o somente com autorização.
 - **Preço vazio:** aparece “Consulte o valor”.
 - **Excluir:** abra o imóvel e confirme duas vezes; salve para publicar a alteração.
 - **Sair:** use **Sair**. A sessão fica no armazenamento da aba do navegador e expira conforme a configuração de autenticação do Supabase.

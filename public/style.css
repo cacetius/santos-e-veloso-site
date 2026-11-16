@@ -139,6 +139,7 @@ button.row:active,a.row:active{background:var(--fill)}
 .dots span.on{background:#fff}
 .dhead{display:grid;gap:4px;padding-top:16px}
 .dhead h2{font-size:28px;line-height:1.15;font-weight:700;margin:0;letter-spacing:.01em}
+.property-map{display:block;width:100%;height:260px;margin-top:14px;border:0;border-radius:12px;background:var(--cell)}
 .acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
 .act{border:0;background:var(--cell);border-radius:12px;padding:10px 4px;display:grid;justify-items:center;gap:4px;font-size:13px;color:var(--tint);cursor:pointer;text-decoration:none}
 .act[aria-pressed="true"] svg{fill:#ff375f;stroke:#ff375f}

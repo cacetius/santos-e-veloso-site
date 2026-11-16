@@ -26,6 +26,14 @@ const pic = (i,src,extra="") => src
   ? `<div class="pic" style="background-image:url('${esc(src)}')" role="img" aria-label="Foto de ${esc(i.titulo)}">${extra}</div>`
   : `<div class="pic ${i.ph}" role="img" aria-label="Imagem ilustrativa">${ICON[i.ph]}${extra}</div>`;
 const precoHTML = i => i.preco ? `<span class="price">${brl(i.preco)}</span>` : `<span class="price c">Consulte o valor</span>`;
+const mapaEmbed = i => {
+  if (i.lat == null || i.lon == null) return "";
+  const lat = Number(i.lat), lon = Number(i.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return "";
+  const offset = 0.006, bbox = [lon - offset, lat - offset, lon + offset, lat + offset].join(",");
+  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${lat}%2C${lon}`;
+  return `<iframe class="property-map" title="Mapa de ${esc(i.titulo)}" src="${src}" loading="lazy" referrerpolicy="no-referrer"></iframe>`;
+};
 
 /* toast */
 let tt;
@@ -98,7 +106,10 @@ function openSheet(i){
     <div class="gallery" id="gal">${fotos.map(f=>pic(i,f)).join("")}</div>
     ${fotos.length>1?`<div class="dots" id="dots">${fotos.map((_,k)=>`<span class="${k?"":"on"}"></span>`).join("")}</div>`:""}
     <div class="in">
-      <div class="dhead">${precoHTML(i)}<h2 id="d-tit">${esc(i.titulo)}</h2><p class="meta">${esc(local(i))} · Código ${i.cod}</p></div>
+      <div class="dhead">${precoHTML(i)}<h2 id="d-tit">${esc(i.titulo)}</h2><p class="meta">${esc(local(i))} · Código ${i.cod}</p>
+        ${i.endereco ? `<p class="meta">${esc(i.endereco)}</p>` : ""}
+      </div>
+      ${mapaEmbed(i)}
       <div class="acts">
         <a class="act" target="_blank" rel="noopener" href="${wa(`Olá, Juan! Tenho interesse no imóvel ${i.cod}: ${i.titulo}. Pode me passar mais informações?`)}">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/></svg>Mensagem</a>
